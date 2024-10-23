@@ -6,7 +6,7 @@ const FormEnvio = () => {
     const [name, setName] = useState('')
     const [emails, setEmails] = useState<String[]>([])
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [addSelect, setAddSelect] = useState<any[]>([])
+    const [addSelect, setAddSelect] = useState<number[]>([0])
     const [professores, setProfessores] = useState(listaProfessores)
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,20 +30,19 @@ const FormEnvio = () => {
       setSelectedFile(null)
     }
 
-    const handleEmail = (e: React.ChangeEvent<{ name?: string; value: unknown }>) => {
+    const handleEmail = (e: React.ChangeEvent<{ name?: string; value: unknown }>, index: number) => {
       const novoEmail = e.target.value as string
-      setEmails((prevEmails) => [novoEmail, ...prevEmails]);
 
-      // filtrar Apenas professores que não estão na lista
-      setProfessores(listaProfessores.filter((prof) => !emails.includes(prof.email)));
-
-      console.log(emails)
-      console.log(professores)
+      //colocar o novo email em posição no array equivalente a key do select a que ele pertence
+      setEmails((prevEmails) => {
+        prevEmails[index] = novoEmail
+        return [...prevEmails]
+      });
       
     }
 
     const handleAddProfessor = () => {
-      setAddSelect((prevAddSelect) => [...prevAddSelect, prevAddSelect.length]);
+      setAddSelect((prevAddSelect) => [...prevAddSelect, addSelect.reverse()[0]+ 1]);
     }
 
     return (
@@ -72,29 +71,19 @@ const FormEnvio = () => {
                   onChange={(e) => setName(e.target.value)}
                   value={name}
               />
-
-              <Select
-                onChange={handleEmail}
-                fullWidth
-                variant='outlined'
-                value="1"
-              >
-                <MenuItem value="1" disabled selected>Escolha um professor(a)</MenuItem>
-                {professores && professores.map((prof) => (
-                  <MenuItem value={prof.email} key={prof.email}>{prof.nome}</MenuItem>
-                ))}
-              </Select>
-              {addSelect && addSelect.map((_, index) => (
+              {addSelect && addSelect.map((_,index) => (
                     <Select
-                    onChange={handleEmail}
+                    onChange={(e) => handleEmail(e, index)}
                     fullWidth
                     variant='outlined'
-                    value="1"
+                    value={emails[index] || ""}
                     key={index}
                   >
                     <MenuItem value="1" disabled selected>Escolha um professor(a)</MenuItem>
                     {professores && professores.map((prof) => (
-                      <MenuItem value={prof.email} key={prof.email}>{prof.nome}</MenuItem>
+                      !emails.includes(prof.email)?
+                      (<MenuItem value={prof.email} key={prof.email}>{prof.nome}</MenuItem>):
+                      (<MenuItem value={prof.email} key={prof.email} disabled hidden>{prof.nome}</MenuItem>) 
                     ))}
                   </Select>
               ))}
